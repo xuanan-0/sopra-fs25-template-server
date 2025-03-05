@@ -42,6 +42,15 @@ public class UserController {
     return userGetDTOs;
   }
 
+  @GetMapping("/users/{userId}")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO getUserById(@PathVariable Long userId) {
+    User user = userService.getUserById(userId);
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
+  }  
+
+
   @PostMapping("/users")
   @ResponseStatus(HttpStatus.CREATED)
   @ResponseBody
@@ -54,4 +63,11 @@ public class UserController {
     // convert internal representation of user back to API
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
   }
+
+  @PutMapping("/users/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void updateUser(@PathVariable Long userId, @RequestBody UserPostDTO userPostDTO) {
+    userService.updateUser(userId, userPostDTO.getUsername(), userPostDTO.getBirthday());
+  }
+
 }

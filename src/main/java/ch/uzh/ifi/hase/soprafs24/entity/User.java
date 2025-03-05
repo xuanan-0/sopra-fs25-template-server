@@ -4,6 +4,7 @@ import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Internal User Representation
@@ -31,8 +32,18 @@ public class User implements Serializable {
   @Column(nullable = false, unique = true)
   private String username;
 
+  @Column(nullable = false)
+  private String password;
+
   @Column(nullable = false, unique = true)
   private String token;
+
+  @Column(nullable = false)
+  private Date creationDate;
+
+  @Column 
+  private Date birthday; 
+
 
   @Column(nullable = false)
   private UserStatus status;
@@ -61,6 +72,14 @@ public class User implements Serializable {
     this.username = username;
   }
 
+  public String getPassword() { 
+    return password; 
+  }  
+
+  public void setPassword(String password) {
+     this.password = password;
+     } 
+
   public String getToken() {
     return token;
   }
@@ -68,6 +87,20 @@ public class User implements Serializable {
   public void setToken(String token) {
     this.token = token;
   }
+
+  public Date getCreationDate() {
+     return creationDate; 
+    }  
+
+  public void setCreationDate(Date creationDate) { 
+    this.creationDate = creationDate; 
+  }  
+  public Date getBirthday() {
+     return birthday; 
+    }  
+  public void setBirthday(Date birthday) {
+     this.birthday = birthday; 
+    } 
 
   public UserStatus getStatus() {
     return status;

@@ -1,4 +1,4 @@
-package ch.uzh.ifi.hase.soprafs24.service;
+ package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.User;

@@ -14,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Date;
+
 
 /**
  * User Service
@@ -31,7 +33,7 @@ public class UserService {
   private final UserRepository userRepository;
 
   @Autowired
-  public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+  public UserService(UserRepository userRepository) {
     this.userRepository = userRepository;
   }
 
@@ -39,9 +41,17 @@ public class UserService {
     return this.userRepository.findAll();
   }
 
+  public User getUserById(Long userId) {
+    return userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+  }
+
+
   public User createUser(User newUser) {
     newUser.setToken(UUID.randomUUID().toString());
     newUser.setStatus(UserStatus.OFFLINE);
+    newUser.setCreationDate(new Date());
+
     checkIfUserExists(newUser);
     // saves the given entity but data is only persisted in the database once
     // flush() is called
@@ -51,6 +61,27 @@ public class UserService {
     log.debug("Created Information for User: {}", newUser);
     return newUser;
   }
+
+  public User updateUser(Long userId, String newUsername, Date newBirthday) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+          
+            
+    if (newUsername != null && !newUsername.equals(user.getUsername())) {
+        if (userRepository.findByUsername(newUsername) != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
+        }
+        user.setUsername(newUsername);
+    }
+    
+    if (newBirthday != null) {
+    user.setBirthday(new Date(newBirthday.getTime()));
+    }
+
+    return userRepository.save(user);
+  }
+
 
   /**
    * This is a helper method that will check the uniqueness criteria of the
@@ -64,16 +95,8 @@ public class UserService {
    */
   private void checkIfUserExists(User userToBeCreated) {
     User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-    User userByName = userRepository.findByName(userToBeCreated.getName());
-
-    String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the name", "are"));
-    } else if (userByUsername != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
-    }
+    if (userByUsername != null) {
+     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Username already exists");
+    } 
   }
 }

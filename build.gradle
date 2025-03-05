@@ -55,9 +55,10 @@ bootJar {
 
 sonar {
     properties {
-        property "sonar.projectKey", "TODO"
-        property "sonar.organization", "TODO"
-        property "sonar.host.url", "TODO"
+        property "sonar.projectKey", "xuanan-0_sopra-fs25-template-server"
+        property "sonar.organization", "xuanan-0"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.token", System.getenv('SONAR_TOKEN')
     }
 }
 
