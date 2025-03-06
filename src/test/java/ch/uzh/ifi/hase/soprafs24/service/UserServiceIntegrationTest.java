@@ -151,7 +151,8 @@ public class UserServiceIntegrationTest {
     updateUser.setBirthday(birthday);
 
     // when
-    userService.updateUser(createdUser.getId(), updateUser);
+    userService.updateUser(createdUser.getId(), updateUser, createdUser.getToken());
+
 
     // then
     User updatedUser = userService.getUserById(createdUser.getId());

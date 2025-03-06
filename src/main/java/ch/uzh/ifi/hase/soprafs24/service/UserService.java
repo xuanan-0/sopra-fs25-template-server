@@ -59,11 +59,11 @@ public class UserService {
     checkIfUserExists(newUser);
     // saves the given entity but data is only persisted in the database once
     // flush() is called
-    newUser = userRepository.save(newUser);
+    User savedUser = userRepository.save(newUser);
     userRepository.flush();
 
-    log.debug("Created Information for User: {}", newUser);
-    return newUser;
+    log.debug("Created Information for User: {}", savedUser);
+    return savedUser;
   }
 
   public User loginUser(User userInput) {
@@ -85,8 +85,11 @@ public class UserService {
     return userByUsername;
   }
 
-  public void updateUser(Long userId, User userInput) {
+  public User updateUser(Long userId, User userInput, String token) {
     User user = getUserById(userId);
+    if (user.getToken() == null || token == null || !user.getToken().equals(token)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to modify this profile");
+    }
     if (userInput.getUsername() != null && !userInput.getUsername().equals(user.getUsername())) {
       User existingUser = userRepository.findByUsername(userInput.getUsername());
       if (existingUser != null) {
@@ -101,7 +104,10 @@ public class UserService {
     }
     
     userRepository.save(user);
-    userRepository.flush();
+    userRepository.flush(); 
+
+    return userRepository.findById(userId).orElseThrow(() ->
+    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User update failed"));
   }
 
   /**

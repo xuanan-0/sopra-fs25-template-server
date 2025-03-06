@@ -39,8 +39,9 @@ public class UserServiceTest {
     testUser.setId(1L);
     testUser.setName("testName");
     testUser.setUsername("testUsername");
-    testUser.setPassword("testPassword"); // 添加密码
+    testUser.setPassword("testPassword"); 
     testUser.setCreationDate(new Date());
+    testUser.setToken("test-token");
 
     // when -> any object is being save in the userRepository -> return the dummy
     // testUser
@@ -177,12 +178,12 @@ public class UserServiceTest {
     updateUser.setUsername("newUsername");
     updateUser.setBirthday(new Date());
 
-    Mockito.when(userRepository.findById(testUser.getId())).thenReturn(java.util.Optional.of(testUser));
+    Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser)); 
     Mockito.when(userRepository.findByUsername("newUsername")).thenReturn(null);
     Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(testUser);
-
+    
     // when
-    userService.updateUser(testUser.getId(), updateUser);
+    userService.updateUser(testUser.getId(), updateUser, testUser.getToken());
 
     // then
     assertEquals("newUsername", testUser.getUsername());
