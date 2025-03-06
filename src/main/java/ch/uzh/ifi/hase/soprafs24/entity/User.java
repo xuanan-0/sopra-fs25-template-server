@@ -90,17 +90,19 @@ public class User implements Serializable {
 
   public Date getCreationDate() {
      return creationDate; 
-    }  
+  }  
 
   public void setCreationDate(Date creationDate) { 
     this.creationDate = creationDate; 
   }  
+
   public Date getBirthday() {
      return birthday; 
-    }  
+  }
+
   public void setBirthday(Date birthday) {
      this.birthday = birthday; 
-    } 
+  } 
 
   public UserStatus getStatus() {
     return status;

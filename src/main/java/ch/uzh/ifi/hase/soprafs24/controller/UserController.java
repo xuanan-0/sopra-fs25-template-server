@@ -3,6 +3,7 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPutDTO; 
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -45,11 +46,10 @@ public class UserController {
   @GetMapping("/users/{userId}")
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public UserGetDTO getUserById(@PathVariable Long userId) {
+  public UserGetDTO getUser(@PathVariable Long userId) {
     User user = userService.getUserById(userId);
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(user);
-  }  
-
+  }
 
   @PostMapping("/users")
   @ResponseStatus(HttpStatus.CREATED)
@@ -64,10 +64,21 @@ public class UserController {
     return DTOMapper.INSTANCE.convertEntityToUserGetDTO(createdUser);
   }
 
-  @PutMapping("/users/{userId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void updateUser(@PathVariable Long userId, @RequestBody UserPostDTO userPostDTO) {
-    userService.updateUser(userId, userPostDTO.getUsername(), userPostDTO.getBirthday());
+  @PostMapping("/login")
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public UserGetDTO loginUser(@RequestBody UserPostDTO userPostDTO) {
+    User userInput = DTOMapper.INSTANCE.convertUserPostDTOtoEntity(userPostDTO);
+    User loggedInUser = userService.loginUser(userInput);
+    return DTOMapper.INSTANCE.convertEntityToUserGetDTO(loggedInUser);
   }
 
+  @PutMapping("/users/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public void updateUser(@PathVariable Long userId, @RequestBody UserPutDTO userPutDTO) {
+    User user = new User();
+    DTOMapper.INSTANCE.updateUserFromPutDTO(userPutDTO, user);
+    userService.updateUser(userId, user);
+  }
 }

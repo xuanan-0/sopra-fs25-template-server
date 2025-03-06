@@ -12,10 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.Date;
-
 
 /**
  * User Service
@@ -33,7 +32,7 @@ public class UserService {
   private final UserRepository userRepository;
 
   @Autowired
-  public UserService(UserRepository userRepository) {
+  public UserService(@Qualifier("userRepository") UserRepository userRepository) {
     this.userRepository = userRepository;
   }
 
@@ -43,13 +42,18 @@ public class UserService {
 
   public User getUserById(Long userId) {
     return userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "User with ID " + userId + " was not found"));
   }
 
-
   public User createUser(User newUser) {
+    if (newUser.getUsername() == null || newUser.getUsername().isEmpty() ||
+        newUser.getPassword() == null || newUser.getPassword().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+              "Username and password cannot be empty");
+    }
     newUser.setToken(UUID.randomUUID().toString());
-    newUser.setStatus(UserStatus.OFFLINE);
+    newUser.setStatus(UserStatus.ONLINE);
     newUser.setCreationDate(new Date());
 
     checkIfUserExists(newUser);
@@ -62,26 +66,43 @@ public class UserService {
     return newUser;
   }
 
-  public User updateUser(Long userId, String newUsername, Date newBirthday) {
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+  public User loginUser(User userInput) {
+    User userByUsername = userRepository.findByUsername(userInput.getUsername());
 
-          
-            
-    if (newUsername != null && !newUsername.equals(user.getUsername())) {
-        if (userRepository.findByUsername(newUsername) != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
-        }
-        user.setUsername(newUsername);
+    if (userByUsername == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with username " + 
+              userInput.getUsername() + " was not found");
     }
     
-    if (newBirthday != null) {
-    user.setBirthday(new Date(newBirthday.getTime()));
+    if (!userByUsername.getPassword().equals(userInput.getPassword())) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
     }
-
-    return userRepository.save(user);
+    
+    userByUsername.setStatus(UserStatus.ONLINE);
+    userByUsername = userRepository.save(userByUsername);
+    userRepository.flush();
+    
+    return userByUsername;
   }
 
+  public void updateUser(Long userId, User userInput) {
+    User user = getUserById(userId);
+    if (userInput.getUsername() != null && !userInput.getUsername().equals(user.getUsername())) {
+      User existingUser = userRepository.findByUsername(userInput.getUsername());
+      if (existingUser != null) {
+        throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                "Username " + userInput.getUsername() + " is already taken");
+      }
+      user.setUsername(userInput.getUsername());
+    }
+
+    if (userInput.getBirthday() != null) {
+      user.setBirthday(userInput.getBirthday());
+    }
+    
+    userRepository.save(user);
+    userRepository.flush();
+  }
 
   /**
    * This is a helper method that will check the uniqueness criteria of the
@@ -95,8 +116,11 @@ public class UserService {
    */
   private void checkIfUserExists(User userToBeCreated) {
     User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
+
+
     if (userByUsername != null) {
-     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Username already exists");
-    } 
+      throw new ResponseStatusException(HttpStatus.CONFLICT, 
+              "Username " + userToBeCreated.getUsername() + " is already taken");
+    }
   }
 }
