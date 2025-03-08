@@ -87,6 +87,12 @@ public class UserService {
 
   public User updateUser(Long userId, User userInput, String token) {
     User user = getUserById(userId);
+    if (token !=null && token.startsWith("Bearer ")){
+      token = token.substring(7); 
+    }
+    System.out.println("Received token: " + token);
+    System.out.println("User's stored token: " + user.getToken());
+
     if (user.getToken() == null || token == null || !user.getToken().equals(token)) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to modify this profile");
     }
